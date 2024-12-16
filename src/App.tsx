@@ -1,37 +1,80 @@
-import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "./firebase";
+// src/App.tsx
+import React, { useState } from "react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db, auth, provider } from "./firebase";
+import { signInWithPopup } from "firebase/auth";
 
-const WordsList: React.FC = () => {
-  const [words, setWords] = useState<any[]>([]);
+const WordsForm: React.FC = () => {
+  const [name, setName] = useState("");
+  const [date, setDate] = useState("");
+  const [meaning, setMeaning] = useState("");
 
-  useEffect(() => {
-    const fetchWords = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "words"));
-        const wordsList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setWords(wordsList);
-      } catch (error) {
-        console.error("Veriler alınırken hata oluştu:", error);
-      }
-    };
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      console.log("Giriş başarılı!");
+    } catch (error) {
+      console.error("Giriş sırasında hata oluştu:", error.message);
+    }
+  };
 
-    fetchWords();
-  }, []);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      await addDoc(collection(db, "words"), {
+        isim: name,
+        tarih: date || serverTimestamp(),
+        anlam: meaning,
+      });
+
+      setName("");
+      setDate("");
+      setMeaning("");
+
+      console.log("Veri başarıyla eklendi!");
+    } catch (error) {
+      console.error("Veri eklenirken hata oluştu:", error.message);
+    }
+  };
 
   return (
     <div>
-      <h1>Words Listesi</h1>
-      <ul>
-        {words.map((word) => (
-          <li key={word.id}>{JSON.stringify(word)}</li>
-        ))}
-      </ul>
+      <h1>Word Ekleme Formu</h1>
+      <button onClick={handleLogin}>Google ile Giriş Yap</button>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>İsim: </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Kelime girin"
+            required
+          />
+        </div>
+        <div>
+          <label>Anlam: </label>
+          <input
+            type="text"
+            value={meaning}
+            onChange={(e) => setMeaning(e.target.value)}
+            placeholder="Kelimenin anlamını girin"
+            required
+          />
+        </div>
+        <div>
+          <label>Tarih: </label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+        <button type="submit">Ekle</button>
+      </form>
     </div>
   );
 };
 
-export default WordsList;
+export default WordsForm;

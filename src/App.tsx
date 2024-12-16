@@ -14,7 +14,7 @@ const WordsForm: React.FC = () => {
       await signInWithPopup(auth, provider);
       console.log("Giriş başarılı!");
     } catch (error) {
-      console.error("Giriş sırasında hata oluştu:", error.message);
+      console.error("Giriş sırasında hata oluştu:", (error as Error).message);
     }
   };
 
@@ -34,7 +34,7 @@ const WordsForm: React.FC = () => {
 
       console.log("Veri başarıyla eklendi!");
     } catch (error) {
-      console.error("Veri eklenirken hata oluştu:", error.message);
+      console.error("Veri eklenirken hata oluştu:", (error as Error).message);
     }
   };
 
